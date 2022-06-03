@@ -1,0 +1,554 @@
+  system
+   host-name             AS4-vSmart1
+   gps-location latitude 35.89
+   gps-location longitude -78.0
+   system-ip             4.4.4.3
+   domain-id             1
+   site-id               10
+   admin-tech-on-failure
+   no vrrp-advt-with-phymac
+   sp-organization-name  "as-overlay - 4"
+   organization-name     "as-overlay - 4"
+   vbond 152.22.241.155 port 12346
+   aaa
+    auth-order      local radius tacacs
+    usergroup basic
+     task system read write
+     task interface read write
+    !
+    usergroup netadmin
+    !
+    usergroup operator
+     task system read
+     task interface read
+     task policy read
+     task routing read
+     task security read
+    !
+    user admin
+     password $6$qmk8Rw==$z/YBiuBpxGt/9Duj18KXHk6DkePP6pthi.jFVVEm12hJtNgUgSUK501P6sFVFEHPYVyYV9CJzm35wC6BqRwxX.
+    !
+    user casestudy
+     password $6$M6wNjA==$WMhcNMv.L0jZz624mz1awMN7rjtWAz2nc6OmDu3mNAhUUhrIK.TiNvc7vtskNmF7M.vdYAI8pXcAaa7oJ50GF.
+     group    netadmin
+    !
+    ciscotacro-user true
+    ciscotacrw-user true
+   !
+   logging
+    disk
+     enable
+    !
+   !
+   ntp
+    parent
+     no enable
+     stratum 5
+    exit
+    server time1.google.com
+     vpn     512
+     version 4
+    exit
+   !
+  !
+  omp
+   no shutdown
+   send-path-limit   16
+   send-backup-paths
+   graceful-restart
+  !
+  security
+   control
+    protocol tls
+   !
+  !
+  banner
+   login "Authorized Access Only. Unauthorized Access Strictly Prohibited."
+   motd  "Authorized Access Only. Unauthorized Access Strictly Prohibited"
+  !
+  vpn 0
+   interface eth1
+    ip address 152.22.241.149/27
+    ipv6 dhcp-client
+    tunnel-interface
+     allow-service dhcp
+     allow-service dns
+     allow-service icmp
+     no allow-service sshd
+     no allow-service netconf
+     no allow-service ntp
+     no allow-service stun
+    !
+    no shutdown
+   !
+   ip route 0.0.0.0/0 152.22.241.129
+  !
+  vpn 512
+   interface eth0
+    ip address 192.168.250.233/24
+    ipv6 dhcp-client
+    no shutdown
+   !
+   ip route 0.0.0.0/0 192.168.250.1
+  !
+  policy
+   sla-class CS1_SLA_BUSINESS_DATA
+    loss    2
+    latency 400
+    jitter  60
+    fallback-best-tunnel
+     criteria         latency
+     latency-variance 100
+    !
+   !
+   sla-class CS1_SLA_DEFAULT
+    loss    5
+    latency 800
+    jitter  60
+   !
+   sla-class CS1_SLA_VIDEO
+    loss    2
+    latency 600
+    jitter  80
+    fallback-best-tunnel
+     criteria         loss jitter latency
+     loss-variance    10
+     latency-variance 10
+     jitter-variance  10
+    !
+   !
+   sla-class CS1_SLA_VOICE
+    loss    2
+    latency 300
+    jitter  60
+    fallback-best-tunnel
+     criteria         loss latency jitter
+     loss-variance    10
+     latency-variance 100
+     jitter-variance  10
+    !
+   !
+   data-policy _CS1_ALL_VPNS_CS1_DataPolicy_QOS_Classify_FC_Marking
+    vpn-list CS1_ALL_VPNS
+     sequence 1
+      match
+       source-ip 0.0.0.0/0
+       dscp      26 34
+      !
+      action accept
+       set
+        forwarding-class STREAMING_VIDEO
+       !
+      !
+     !
+     sequence 11
+      match
+       source-ip 0.0.0.0/0
+       dscp      46
+      !
+      action accept
+       set
+        forwarding-class VOICE_PQ_level1
+       !
+      !
+     !
+     sequence 21
+      match
+       source-ip 0.0.0.0/0
+       app-list  REAL_TIME_APPS
+      !
+      action accept
+       set
+        dscp             46
+        forwarding-class VOICE_PQ_level1
+       !
+      !
+     !
+     sequence 31
+      match
+       source-data-prefix-list CS1_Forecourt_Controller_VPN1
+      !
+      action accept
+       set
+        dscp             18
+        forwarding-class CRITICAL_DATA
+       !
+      !
+     !
+     sequence 41
+      match
+       destination-data-prefix-list CS1_DC_CStore_POS_Server_prefix
+      !
+      action accept
+       set
+        dscp             18
+        forwarding-class CRITICAL_DATA
+       !
+      !
+     !
+     sequence 51
+      match
+       source-ip 0.0.0.0/0
+       app-list  G_APPS_NETWORK_CONTROL
+      !
+      action accept
+       set
+        dscp             48
+        forwarding-class VOICE_PQ_level1
+       !
+      !
+     !
+     sequence 61
+      match
+       source-ip 0.0.0.0/0
+       app-list  G_APPS_SCAVENGER
+      !
+      action accept
+       set
+        dscp             8
+        forwarding-class SCAVENGER
+       !
+      !
+     !
+     sequence 71
+      match
+       source-ip 0.0.0.0/0
+       app-list  APP_BULK_DATA
+      !
+      action accept
+       set
+        forwarding-class BULK
+       !
+      !
+     !
+     sequence 81
+      match
+       source-ip 0.0.0.0/0
+       app-list  G_184_Microsoft_Apps_List
+      !
+      action accept
+       set
+        dscp             18
+        forwarding-class CRITICAL_DATA
+       !
+      !
+     !
+     sequence 91
+      match
+       source-ip 0.0.0.0/0
+      !
+      action accept
+       set
+        forwarding-class DEFAULT
+       !
+      !
+     !
+     default-action accept
+    !
+   !
+   app-route-policy _CS1_ALL_VPNS_CS1_AAR_Policy
+    vpn-list CS1_ALL_VPNS
+     sequence 1
+      match
+       source-ip 0.0.0.0/0
+       dscp      26 34
+      !
+      action
+       backup-sla-preferred-color biz-internet
+       sla-class CS1_SLA_VIDEO preferred-color mpls private1
+      !
+     !
+     sequence 11
+      match
+       source-ip 0.0.0.0/0
+       dscp      46
+      !
+      action
+       backup-sla-preferred-color biz-internet
+       sla-class CS1_SLA_VOICE preferred-color mpls private1
+      !
+     !
+     sequence 21
+      match
+       source-ip 0.0.0.0/0
+       dscp      18
+      !
+      action
+       sla-class CS1_SLA_BUSINESS_DATA preferred-color biz-internet public-internet
+      !
+     !
+     sequence 31
+      match
+       source-ip 0.0.0.0/0
+       dscp      8
+      !
+      action
+       sla-class CS1_SLA_DEFAULT preferred-color biz-internet public-internet
+      !
+     !
+     sequence 41
+      match
+       source-ip 0.0.0.0/0
+       dscp      24
+      !
+      action
+       sla-class CS1_SLA_BUSINESS_DATA
+      !
+     !
+     sequence 51
+      match
+       source-ip 0.0.0.0/0
+      !
+      action
+       sla-class CS1_SLA_DEFAULT
+      !
+     !
+     default-action sla-class CS1_SLA_DEFAULT
+    !
+   !
+   cflowd-template CS1_cFlowd_LiveNX
+    flow-active-timeout    60
+    flow-inactive-timeout  10
+    template-refresh       600
+    flow-sampling-interval 30
+    protocol               ipv4
+    customized-ipv4-record-fields
+     collect-tos
+     collect-dscp-output
+    !
+    collector vpn 1 address 10.100.0.250 port 2055 transport transport_udp source-interface Loopback0
+   !
+   lists
+    vpn-list CS1_ALL_VPNS
+     vpn 1-3
+    !
+    data-prefix-list CS1_DC_CStore_POS_Server_prefix
+     ip-prefix 10.100.0.0/24
+     ip-prefix 10.110.0.0/24
+    !
+    data-prefix-list CS1_Forecourt_Controller_VPN1
+     ip-prefix 10.200.0.0/16
+    !
+    tloc-list CS1_DC1_TLOC_List
+     tloc 192.168.250.149 color mpls encap ipsec
+     tloc 192.168.250.149 color biz-internet encap ipsec
+     tloc 192.168.250.149 color lte encap ipsec
+     tloc 192.168.250.149 color private1 encap ipsec
+     tloc 192.168.250.153 color mpls encap ipsec
+     tloc 192.168.250.153 color biz-internet encap ipsec
+     tloc 192.168.250.153 color lte encap ipsec
+     tloc 192.168.250.153 color private1 encap ipsec
+    !
+    tloc-list CS1_DC2_TLOC_List
+     tloc 192.168.250.147 color mpls encap ipsec
+     tloc 192.168.250.147 color biz-internet encap ipsec
+     tloc 192.168.250.147 color lte encap ipsec
+     tloc 192.168.250.147 color private1 encap ipsec
+     tloc 192.168.250.152 color mpls encap ipsec
+     tloc 192.168.250.152 color biz-internet encap ipsec
+     tloc 192.168.250.152 color lte encap ipsec
+     tloc 192.168.250.152 color private1 encap ipsec
+    !
+    app-list APP_BULK_DATA
+     app cisco-jabber-im
+     app ftp
+     app ftp-data
+     app ftp_data
+     app jabber
+     app netblt
+     app rsync
+    !
+    app-list G_184_Microsoft_Apps_List
+     app bing
+     app excel_online
+     app groove
+     app hockeyapp
+     app live_groups
+     app live_hotmail
+     app live_mesh
+     app live_storage
+     app livemail_mobile
+     app lync
+     app lync_online
+     app microsoft
+     app ms-live-accounts
+     app ms-lync
+     app ms-office-365
+     app ms-office-web-apps
+     app ms-services
+     app ms_communicator
+     app ms_onenote
+     app ms_planner
+     app ms_sway
+     app ms_translator
+     app office365
+     app office_docs
+     app onedrive
+     app outlook
+     app outlook-web-service
+     app owa
+     app powerpoint_online
+     app share-point
+     app sharepoint
+     app sharepoint_admin
+     app sharepoint_blog
+     app sharepoint_calendar
+     app sharepoint_document
+     app sharepoint_online
+     app skydrive
+     app skydrive_login
+     app skype
+     app windows-azure
+     app windows-update
+     app windows_azure
+     app windows_marketplace
+     app windows_update
+     app windowslive
+     app windowslivespace
+     app windowsmedia
+     app word_online
+     app xbox
+     app xbox-web-portal
+     app xbox_music
+     app xbox_video
+     app xboxlive
+     app xboxlive_marketplace
+     app yammer
+    !
+    app-list G_APPS_NETWORK_CONTROL
+     app ntp
+     app radius
+     app smux
+     app ssh
+     app sshell
+     app tacacs
+     app tacacs_plus
+     app telnet
+     app tnvip
+    !
+    app-list G_APPS_SCAVENGER
+     app apple-updates
+     app apple_update
+     app facebook
+     app facebook_apps
+     app facebook_live
+     app facebook_mail
+     app facebook_messenger
+     app fbcdn
+     app flickr
+     app instagram
+     app pinterest
+     app torrentz
+     app twitter
+     app youtube
+     app youtube_hd
+     app ytimg
+    !
+    app-list REAL_TIME_APPS
+     app rtp
+     app sccp
+     app sip
+     app sip_soap
+     app skinny
+     app uaudp_rtp
+    !
+    site-list CS1_ALL-Branches
+     site-id 100000-500000
+    !
+    site-list CS1_ALL-DC
+     site-id 100
+     site-id 110
+    !
+    site-list CS1_ALL-Sites
+     site-id 100-500000
+    !
+    prefix-list DC2-LAN
+     ip-prefix 10.110.0.0/16 le 32
+    !
+    prefix-list _AnyIpv4PrefixList
+     ip-prefix 0.0.0.0/0 le 32
+    !
+   !
+   control-policy CS1-Block-DC-TLOCS-and-Routes
+    sequence 1
+     match tloc
+      site-list CS1_ALL-DC
+     !
+     action reject
+     !
+    !
+    sequence 11
+     match route
+      prefix-list _AnyIpv4PrefixList
+      site-list   CS1_ALL-DC
+     !
+     action reject
+     !
+    !
+    default-action accept
+   !
+   control-policy CS1_CP_HubSpoke_DC1_pref_v2
+    sequence 1
+     match tloc
+      site-list CS1_ALL-DC
+     !
+     action accept
+     !
+    !
+    sequence 11
+     match tloc
+     !
+     action reject
+     !
+    !
+    sequence 21
+     match route
+      prefix-list DC2-LAN
+      tloc-list   CS1_DC2_TLOC_List
+     !
+     action accept
+      set
+       preference 1000
+      !
+     !
+    !
+    sequence 31
+     match route
+      prefix-list DC2-LAN
+      tloc-list   CS1_DC1_TLOC_List
+     !
+     action accept
+      set
+       preference 200
+      !
+     !
+    !
+    sequence 41
+     match route
+      prefix-list _AnyIpv4PrefixList
+      tloc-list   CS1_DC1_TLOC_List
+     !
+     action accept
+      set
+       preference 1000
+      !
+     !
+    !
+    default-action accept
+   !
+  !
+  apply-policy
+   site-list CS1_ALL-Branches
+    control-policy CS1_CP_HubSpoke_DC1_pref_v2 out
+    data-policy _CS1_ALL_VPNS_CS1_DataPolicy_QOS_Classify_FC_Marking from-service
+   !
+   site-list CS1_ALL-DC
+    control-policy CS1-Block-DC-TLOCS-and-Routes out
+   !
+   site-list CS1_ALL-Sites
+    app-route-policy _CS1_ALL_VPNS_CS1_AAR_Policy
+    cflowd-template  CS1_cFlowd_LiveNX
+   !
+  !
+ !
+!
