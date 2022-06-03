@@ -1,3 +1,3 @@
-# tme-sdwan-cs
+# tme-sdwan-cs1
 Repo for TME Design Case Study configs, policies and templates
-Case Study 1 - Small Branch.  "American GasCo"
+Repo for TME Design Case Study 1 - Small Branch.  "American GasCo"
