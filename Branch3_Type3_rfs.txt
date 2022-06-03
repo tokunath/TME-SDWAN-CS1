@@ -1,0 +1,638 @@
+  system
+   ztp-status            success
+   pseudo-confirm-commit 300
+   personality           vedge
+   device-model          vedge-C1111-8PLTEEA
+   chassis-number        C1111-8PLTEEA-FGL2245157H
+   gps-location latitude 35.89
+   gps-location longitude -78.0
+   system-ip             192.168.3.1
+   overlay-id            1
+   site-id               303300
+   port-offset           0
+   control-session-pps   300
+   admin-tech-on-failure
+   sp-organization-name  "as-overlay - 4"
+   organization-name     "as-overlay - 4"
+   port-hop
+   track-transport
+   track-default-gateway
+   console-baud-rate     115200
+   config-template-name  CS1_Small_Branch_Type3
+   no on-demand enable
+   on-demand idle-timeout 10
+   vbond 152.22.241.155 port 12346
+   logging
+    disk
+     enable
+    !
+   !
+  !
+  bfd default-dscp 48
+  bfd app-route multiplier 6
+  bfd app-route poll-interval 120000
+  security
+   ipsec
+    rekey               86400
+    replay-window       512
+    authentication-type sha1-hmac ah-sha1-hmac
+    integrity-type      esp ip-udp-esp
+   !
+  !
+  sslproxy
+   no enable
+   rsa-key-modulus      2048
+   certificate-lifetime 730
+   eckey-type           P256
+   ca-tp-label          PROXY-SIGNING-CA
+   settings expired-certificate  drop
+   settings untrusted-certificate drop
+   settings unknown-status       drop
+   settings certificate-revocation-check none
+   settings unsupported-protocol-versions drop
+   settings unsupported-cipher-suites drop
+   settings failure-mode         close
+   settings minimum-tls-ver      TLSv1
+   dual-side optimization enable
+  !
+  sdwan
+   interface Cellular0/2/0
+    tunnel-interface
+     encapsulation ipsec weight 1
+     no border
+     color lte restrict
+     tunnel-qos spoke
+     last-resort-circuit
+     low-bandwidth-link
+     no vbond-as-stun-server
+     vmanage-connection-preference 1
+     port-hop
+     carrier                       default
+     nat-refresh-interval          5
+     hello-interval                6000
+     hello-tolerance               600
+     no allow-service all
+     no allow-service bgp
+     allow-service dhcp
+     allow-service dns
+     allow-service icmp
+     no allow-service sshd
+     no allow-service netconf
+     no allow-service ntp
+     no allow-service ospf
+     no allow-service stun
+     no allow-service https
+     no allow-service snmp
+     no allow-service bfd
+    exit
+    qos-adaptive
+     period 10
+     downstream 30000
+     downstream range 14000 61000
+     upstream 6000
+     upstream range 3000 14000
+    exit
+   exit
+   interface GigabitEthernet0/0/0
+    tunnel-interface
+     encapsulation ipsec weight 1
+     no border
+     color private1 restrict
+     tunnel-qos spoke
+     no last-resort-circuit
+     no low-bandwidth-link
+     no vbond-as-stun-server
+     vmanage-connection-preference 5
+     port-hop
+     carrier                       default
+     nat-refresh-interval          5
+     hello-interval                1000
+     hello-tolerance               12
+     allow-service all
+     allow-service bgp
+     allow-service dhcp
+     allow-service dns
+     allow-service icmp
+     allow-service sshd
+     no allow-service netconf
+     allow-service ntp
+     allow-service ospf
+     no allow-service stun
+     allow-service https
+     no allow-service snmp
+     no allow-service bfd
+    exit
+    bandwidth-downstream 300000
+   exit
+   interface GigabitEthernet0/0/1
+    tunnel-interface
+     encapsulation ipsec weight 1
+     no border
+     color biz-internet
+     tunnel-qos spoke
+     no last-resort-circuit
+     no low-bandwidth-link
+     no vbond-as-stun-server
+     vmanage-connection-preference 5
+     port-hop
+     carrier                       default
+     nat-refresh-interval          5
+     hello-interval                1000
+     hello-tolerance               12
+     allow-service all
+     allow-service bgp
+     allow-service dhcp
+     allow-service dns
+     allow-service icmp
+     allow-service sshd
+     no allow-service netconf
+     allow-service ntp
+     allow-service ospf
+     no allow-service stun
+     allow-service https
+     no allow-service snmp
+     no allow-service bfd
+    exit
+    bandwidth-downstream 300000
+   exit
+   multicast
+    address-family ipv4 vrf 3
+    !
+   !
+   appqoe
+    no tcpopt enable
+    no dreopt enable
+   !
+   omp
+    no shutdown
+    overlay-as       65000
+    send-path-limit  16
+    ecmp-limit       16
+    graceful-restart
+    no as-dot-notation
+    timers
+     holdtime               60
+     advertisement-interval 1
+     graceful-restart-timer 43200
+     eor-timer              300
+    exit
+    address-family ipv4 vrf 1
+     advertise bgp
+     advertise ospf external
+     advertise connected
+     advertise static
+     advertise eigrp
+    !
+    address-family ipv4 vrf 2
+     advertise bgp
+     advertise ospf external
+     advertise connected
+     advertise static
+    !
+    address-family ipv4 vrf 3
+     advertise bgp
+     advertise ospf external
+     advertise connected
+     advertise static
+    !
+    address-family ipv6
+     advertise connected
+     advertise static
+    !
+   !
+  !
+  banner login TME lab router
+  service tcp-keepalives-in
+  service tcp-keepalives-out
+  no service tcp-small-servers
+  no service udp-small-servers
+  hostname Branch3_Type3
+  username admin privilege 15 secret 9 $9$3V6L3V6L2VUI2k$ysPnXOdg8RLj9KgMdmfHdSHkdaMmiHzGaUpcqH6pfTo
+  controller Cellular 0/2/0
+   lte sim primary slot 1
+  !
+  vrf definition 1
+   description VRF 1
+   rd          1:1
+   address-family ipv4
+    route-target export 1:1
+    route-target import 1:1
+    exit-address-family
+   !
+   address-family ipv6
+    exit-address-family
+   !
+  !
+  vrf definition 2
+   description VRF 2
+   rd          1:2
+   address-family ipv4
+    route-target export 1:2
+    route-target import 1:2
+    exit-address-family
+   !
+   address-family ipv6
+    exit-address-family
+   !
+  !
+  vrf definition 3
+   description VRF 3
+   rd          1:3
+   address-family ipv4
+    route-target export 1:3
+    route-target import 1:3
+    exit-address-family
+   !
+   address-family ipv6
+    exit-address-family
+   !
+  !
+  vrf definition Mgmt-intf
+   description Management VRF
+   rd          1:512
+   address-family ipv4
+    route-target export 1:512
+    route-target import 1:512
+    exit-address-family
+   !
+   address-family ipv6
+    exit-address-family
+   !
+  !
+  ip arp proxy disable
+  no ip finger
+  no ip rcmd rcp-enable
+  no ip rcmd rsh-enable
+  ip cef load-sharing algorithm include-ports source destination
+  no ip domain lookup
+  no ip dhcp use class
+  no ip ftp passive
+  ip pim vrf 3 rp-address 10.100.2.100 multicast-groups
+  ip pim vrf 3 spt-threshold 0
+  ip route 0.0.0.0 0.0.0.0 152.22.241.129
+  ip route 0.0.0.0 0.0.0.0 192.168.1.1
+  ip route vrf Mgmt-intf 0.0.0.0 0.0.0.0 192.168.250.1
+  ip bootp server
+  no ip source-route
+  ip access-list standard multicast-groups
+   10 permit 239.0.0.0 0.255.255.255
+  !
+  no ip http server
+  no ip http secure-server
+  ip multicast-routing vrf 3 distributed
+  ip nat inside source list nat-dia-vpn-hop-access-list interface GigabitEthernet0/0/1 overload
+  ip nat translation tcp-timeout 3600
+  ip nat translation udp-timeout 60
+  ip nat settings central-policy
+  ipv6 cef load-sharing algorithm include-ports source destination
+  vlan 204-206,230-232,990
+  exit
+  class-map match-any BULK
+   match qos-group 5
+  !
+  class-map match-any CALL_SIGNALING
+   match qos-group 7
+  !
+  class-map match-any CRITICAL_DATA
+   match qos-group 1
+  !
+  class-map match-any DEFAULT
+   match qos-group 2
+  !
+  class-map match-any INTERACTIVE
+   match qos-group 4
+  !
+  class-map match-any Queue0
+   match qos-group 0
+  !
+  class-map match-any Queue1
+   match qos-group 1
+  !
+  class-map match-any Queue2
+   match qos-group 2
+  !
+  class-map match-any Queue3
+   match qos-group 3
+  !
+  class-map match-any Queue4
+   match qos-group 4
+  !
+  class-map match-any Queue5
+   match qos-group 5
+  !
+  class-map match-any Queue6
+   match qos-group 6
+  !
+  class-map match-any Queue7
+   match qos-group 7
+  !
+  class-map match-any SCAVENGER
+   match qos-group 3
+  !
+  class-map match-any STREAMING_VIDEO
+   match qos-group 6
+  !
+  policy-map LTE-WAN-QOS-MAP
+   class Queue0
+    police rate percent 14
+    !
+    priority level 1
+   !
+   class Queue1
+    bandwidth remaining ratio 50
+    random-detect precedence-based
+   !
+   class class-default
+    bandwidth remaining ratio 15
+    random-detect precedence-based
+   !
+   class Queue3
+    bandwidth remaining ratio 1
+    random-detect precedence-based
+   !
+   class Queue4
+    bandwidth remaining ratio 10
+    random-detect precedence-based
+   !
+   class Queue5
+    bandwidth remaining ratio 5
+    random-detect precedence-based
+   !
+   class Queue6
+    police rate percent 1
+    !
+    priority level 2
+   !
+   class Queue7
+    bandwidth remaining ratio 4
+    random-detect precedence-based
+   !
+  !
+  policy-map WAN-QOS-MAP
+   class Queue0
+    police rate percent 39
+    !
+    priority level 1
+   !
+   class Queue1
+    bandwidth remaining ratio 25
+    random-detect precedence-based
+   !
+   class class-default
+    bandwidth remaining ratio 15
+    random-detect precedence-based
+   !
+   class Queue3
+    bandwidth remaining ratio 1
+    random-detect precedence-based
+   !
+   class Queue4
+    bandwidth remaining ratio 10
+    random-detect precedence-based
+   !
+   class Queue5
+    bandwidth remaining ratio 5
+    random-detect precedence-based
+   !
+   class Queue6
+    police rate percent 30
+    !
+    priority level 2
+   !
+   class Queue7
+    bandwidth remaining ratio 4
+    random-detect precedence-based
+   !
+  !
+  policy-map shape_Cellular0/2/0
+   class class-default
+    service-policy LTE-WAN-QOS-MAP
+    shape average 6000000
+   !
+  !
+  policy-map shape_GigabitEthernet0/0/0
+   class class-default
+    service-policy WAN-QOS-MAP
+    shape average 300000000
+   !
+  !
+  policy-map shape_GigabitEthernet0/0/1
+   class class-default
+    service-policy WAN-QOS-MAP
+    shape average 300000000
+   !
+  !
+  interface GigabitEthernet0/0/0
+   description   private1
+   no shutdown
+   arp timeout 1200
+   ip address 192.168.1.139 255.255.255.0
+   no ip redirects
+   ip mtu    1500
+   load-interval 30
+   mtu           1500
+   negotiation auto
+   service-policy output shape_GigabitEthernet0/0/0
+  exit
+  interface GigabitEthernet0/0/1
+   description   Business Internet Circuit
+   no shutdown
+   arp timeout 1200
+   ip address 152.22.241.148 255.255.255.224
+   no ip redirects
+   ip mtu    1500
+   ip nat outside
+   load-interval 30
+   mtu           1500
+   negotiation auto
+   service-policy output shape_GigabitEthernet0/0/1
+  exit
+  interface GigabitEthernet0/1/0
+   switchport access vlan 990
+   switchport mode access
+   no shutdown
+  exit
+  interface GigabitEthernet0/1/1
+   switchport access vlan 230
+   switchport mode access
+   no shutdown
+  exit
+  interface GigabitEthernet0/1/2
+   switchport access vlan 231
+   switchport mode access
+   no shutdown
+  exit
+  interface GigabitEthernet0/1/3
+   switchport access vlan 232
+   switchport mode access
+   no shutdown
+  exit
+  interface GigabitEthernet0/1/4
+   switchport access vlan 230
+   switchport mode access
+   no shutdown
+  exit
+  interface GigabitEthernet0/1/5
+   switchport access vlan 230
+   switchport mode access
+   no shutdown
+  exit
+  interface GigabitEthernet0/1/6
+   switchport access vlan 230
+   switchport mode access
+   no shutdown
+  exit
+  interface GigabitEthernet0/1/7
+   switchport mode trunk
+   switchport trunk allowed vlan 204-206
+   no shutdown
+  exit
+  interface Loopback1
+   no shutdown
+   arp timeout 1200
+   vrf forwarding 1
+   ip address 192.168.3.1 255.255.255.255
+   ip mtu 1500
+  exit
+  interface Cellular0/2/0
+   description   4G LTE Interface
+   no shutdown
+   ip address negotiated
+   ip mtu 1428
+   load-interval 30
+   mtu           1500
+   service-policy output shape_Cellular0/2/0
+  exit
+  interface Cellular0/2/1
+   no shutdown
+  exit
+  interface Vlan1
+   no shutdown
+  exit
+  interface Vlan230
+   description VPN1 Forecourt VRF
+   no shutdown
+   arp timeout 1200
+   vrf forwarding 1
+   ip address 10.200.3.1 255.255.255.0
+   ip mtu 1500
+   ip nbar protocol-discovery
+  exit
+  interface Vlan231
+   description VPN2 Office VRF
+   no shutdown
+   arp timeout 1200
+   vrf forwarding 2
+   ip address 10.210.3.1 255.255.255.0
+   ip mtu 1500
+   ip nbar protocol-discovery
+  exit
+  interface Vlan232
+   description VPN3 Surveillance VRF
+   no shutdown
+   arp timeout 1200
+   vrf forwarding 3
+   ip address 10.220.3.1 255.255.255.0
+   ip pim sparse-mode
+   ip mtu 1500
+   ip nbar protocol-discovery
+  exit
+  interface Vlan990
+   description VPN512 Mgmt VRF
+   no shutdown
+   arp timeout 1200
+   vrf forwarding Mgmt-intf
+   ip address 192.168.250.139 255.255.255.0
+   ip mtu 1500
+  exit
+  interface Tunnel0
+   no shutdown
+   ip unnumbered GigabitEthernet0/0/0
+   no ip redirects
+   ipv6 unnumbered GigabitEthernet0/0/0
+   no ipv6 redirects
+   tunnel source GigabitEthernet0/0/0
+   tunnel mode sdwan
+  exit
+  interface Tunnel1
+   no shutdown
+   ip unnumbered GigabitEthernet0/0/1
+   no ip redirects
+   ipv6 unnumbered GigabitEthernet0/0/1
+   no ipv6 redirects
+   tunnel source GigabitEthernet0/0/1
+   tunnel mode sdwan
+  exit
+  interface Tunnel20
+   no shutdown
+   ip unnumbered Cellular0/2/0
+   no ip redirects
+   ipv6 unnumbered Cellular0/2/0
+   no ipv6 redirects
+   tunnel source Cellular0/2/0
+   tunnel mode sdwan
+  exit
+  clock timezone UTC 0 0
+  logging persistent size 104857600 filesize 10485760
+  no logging monitor
+  logging buffered 512000
+  logging console
+  logging trap informational
+  logging host 10.100.0.251 vrf 1
+  logging source-interface Loopback1 vrf 1
+  aaa authentication login default local
+  aaa authorization exec default local
+  aaa server radius dynamic-author
+  !
+  mac address-table aging-time 300
+  no crypto ikev2 diagnose error
+  no crypto isakmp diagnose error
+  no network-clock revertive
+  snmp-server community 0 $CRYPT_CLUSTER$ckjmxg+Htnkg0eY1i5MeWw==$ikICcTOjyC1EJoXBIGPApQ== view isoAll ro
+  snmp-server community 0 $CRYPT_CLUSTER$pT5/Sr1x+cSsOgaQnPiIDA==$MsnFf9nHNjiOpYx69lh2mQ== view isoAll ro
+  snmp-server contact Tom
+  snmp-server enable traps
+  snmp-server ifindex persist
+  snmp-server location RTP lab
+  snmp-server trap timeout 30
+  snmp-server view isoAll 1.3.6.1 included
+  line con 0
+   speed    115200
+   stopbits 1
+  !
+  line vty 0 4
+   transport input ssh
+  !
+  line vty 5 80
+   transport input ssh
+  !
+  lldp run
+  nat64 translation timeout tcp 3600
+  nat64 translation timeout udp 300
+  policy
+   app-visibility
+   no app-visibility-ipv6
+   flow-visibility
+   no flow-visibility-ipv6
+   implicit-acl-logging
+   log-frequency        1000
+   class-map
+    class BULK queue 5
+    class CALL_SIGNALING queue 7
+    class CRITICAL_DATA queue 1
+    class DEFAULT queue 2
+    class INTERACTIVE queue 4
+    class Queue0 queue 0
+    class Queue1 queue 1
+    class Queue2 queue 2
+    class Queue3 queue 3
+    class Queue4 queue 4
+    class Queue5 queue 5
+    class Queue6 queue 6
+    class Queue7 queue 7
+    class SCAVENGER queue 3
+    class STREAMING_VIDEO queue 6
+   !
+  !
+ !
+!

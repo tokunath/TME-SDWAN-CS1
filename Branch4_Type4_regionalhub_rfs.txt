@@ -1,0 +1,539 @@
+  system
+   ztp-status            success
+   pseudo-confirm-commit 300
+   personality           vedge
+   device-model          vedge-ISR-4451-X
+   chassis-number        ISR4451-X/K9-FOC202101YZ
+   gps-location latitude 35.89
+   gps-location longitude -78.0
+   device-groups         CS1
+   system-ip             192.168.4.1
+   overlay-id            1
+   site-id               405400
+   port-offset           0
+   control-session-pps   300
+   admin-tech-on-failure
+   sp-organization-name  "as-overlay - 4"
+   organization-name     "as-overlay - 4"
+   no port-hop
+   track-transport
+   track-default-gateway
+   console-baud-rate     9600
+   config-template-name  CS1_Branch_Type4_Transporthub1
+   no on-demand enable
+   on-demand idle-timeout 10
+   vbond 152.22.241.155 port 12346
+   logging
+    disk
+     enable
+    !
+   !
+  !
+  bfd default-dscp 48
+  bfd app-route multiplier 6
+  bfd app-route poll-interval 120000
+  security
+   ipsec
+    rekey               86400
+    replay-window       512
+    authentication-type sha1-hmac ah-sha1-hmac
+    integrity-type      esp ip-udp-esp
+    extended-ar-window  256
+   !
+  !
+  sslproxy
+   no enable
+   rsa-key-modulus      2048
+   certificate-lifetime 730
+   eckey-type           P256
+   ca-tp-label          PROXY-SIGNING-CA
+   settings expired-certificate  drop
+   settings untrusted-certificate drop
+   settings unknown-status       drop
+   settings certificate-revocation-check none
+   settings unsupported-protocol-versions drop
+   settings unsupported-cipher-suites drop
+   settings failure-mode         close
+   settings minimum-tls-ver      TLSv1
+   dual-side optimization enable
+  !
+  sdwan
+   interface GigabitEthernet0/0/0
+    tunnel-interface
+     encapsulation ipsec weight 1
+     no border
+     color private1 restrict
+     tunnel-qos spoke
+     no last-resort-circuit
+     no low-bandwidth-link
+     no vbond-as-stun-server
+     vmanage-connection-preference 5
+     port-hop
+     carrier                       default
+     nat-refresh-interval          5
+     hello-interval                1000
+     hello-tolerance               12
+     allow-service all
+     allow-service bgp
+     allow-service dhcp
+     allow-service dns
+     allow-service icmp
+     allow-service sshd
+     no allow-service netconf
+     allow-service ntp
+     allow-service ospf
+     no allow-service stun
+     allow-service https
+     no allow-service snmp
+     no allow-service bfd
+    exit
+    bandwidth-downstream 500000
+   exit
+   interface GigabitEthernet0/0/1
+    tunnel-interface
+     encapsulation ipsec weight 1
+     no border
+     color biz-internet
+     tunnel-qos spoke
+     no last-resort-circuit
+     no low-bandwidth-link
+     no vbond-as-stun-server
+     vmanage-connection-preference 5
+     port-hop
+     carrier                       default
+     nat-refresh-interval          5
+     hello-interval                1000
+     hello-tolerance               12
+     allow-service all
+     allow-service bgp
+     allow-service dhcp
+     allow-service dns
+     allow-service icmp
+     allow-service sshd
+     no allow-service netconf
+     allow-service ntp
+     allow-service ospf
+     no allow-service stun
+     allow-service https
+     no allow-service snmp
+     no allow-service bfd
+    exit
+    bandwidth-downstream 500000
+   exit
+   interface GigabitEthernet0/0/2
+    tloc-extension GigabitEthernet0/0/0
+   exit
+   interface GigabitEthernet0/0/3
+   exit
+   multicast
+    address-family ipv4 vrf 3
+    !
+   !
+   appqoe
+    no tcpopt enable
+    no dreopt enable
+   !
+   omp
+    no shutdown
+    overlay-as       65000
+    send-path-limit  16
+    ecmp-limit       16
+    graceful-restart
+    no as-dot-notation
+    timers
+     holdtime               60
+     advertisement-interval 1
+     graceful-restart-timer 43200
+     eor-timer              300
+    exit
+    address-family ipv4 vrf 1
+     advertise bgp
+     advertise ospf external
+     advertise connected
+     advertise static
+     advertise eigrp
+    !
+    address-family ipv4 vrf 2
+     advertise bgp
+     advertise ospf external
+     advertise connected
+     advertise static
+    !
+    address-family ipv4 vrf 3
+     advertise bgp
+     advertise ospf external
+     advertise connected
+     advertise static
+    !
+    address-family ipv6
+     advertise connected
+     advertise static
+    !
+   !
+  !
+  banner login American GasCo case study RTP11 TME
+  banner motd American GasCo case study RTP11 TME
+  service tcp-keepalives-in
+  service tcp-keepalives-out
+  no service tcp-small-servers
+  no service udp-small-servers
+  hostname Branch_Type4_regionalhub
+  username admin privilege 15 secret 9 $9$3V6L3V6L2VUI2k$ysPnXOdg8RLj9KgMdmfHdSHkdaMmiHzGaUpcqH6pfTo
+  vrf definition 1
+   description VRF 1
+   rd          1:1
+   address-family ipv4
+    route-target export 65004:1
+    route-target import 65004:1
+    exit-address-family
+   !
+   address-family ipv6
+    exit-address-family
+   !
+  !
+  vrf definition 2
+   description VRF 2
+   rd          1:2
+   address-family ipv4
+    route-target export 65004:2
+    route-target import 65004:2
+    exit-address-family
+   !
+   address-family ipv6
+    exit-address-family
+   !
+  !
+  vrf definition 3
+   description VRF 3
+   rd          1:3
+   address-family ipv4
+    route-target export 65004:3
+    route-target import 65004:3
+    exit-address-family
+   !
+   address-family ipv6
+    exit-address-family
+   !
+  !
+  vrf definition Mgmt-intf
+   description Management VRF
+   rd          1:512
+   address-family ipv4
+    route-target export 65004:512
+    route-target import 65004:512
+    exit-address-family
+   !
+   address-family ipv6
+    exit-address-family
+   !
+  !
+  ip arp proxy disable
+  no ip finger
+  no ip rcmd rcp-enable
+  no ip rcmd rsh-enable
+  ip cef load-sharing algorithm include-ports source destination
+  no ip domain lookup
+  no ip dhcp use class
+  no ip ftp passive
+  ip pim vrf 3 rp-address 10.100.2.100 multicast-groups
+  ip pim vrf 3 spt-threshold 0
+  ip prefix-list Private1-WAN-link-space seq 5 permit 192.168.3.0/24 le 32
+  ip route 0.0.0.0 0.0.0.0 152.22.241.129
+  ip route 0.0.0.0 0.0.0.0 192.168.1.1
+  ip route vrf Mgmt-intf 0.0.0.0 0.0.0.0 192.168.250.1
+  ip bootp server
+  no ip source-route
+  ip access-list standard multicast-groups
+   10 permit 239.0.0.0 0.255.255.255
+  !
+  no ip http server
+  no ip http secure-server
+  ip multicast-routing vrf 3 distributed
+  ip nat inside source list nat-dia-vpn-hop-access-list interface GigabitEthernet0/0/1 overload
+  ip nat translation tcp-timeout 3600
+  ip nat translation udp-timeout 60
+  ip nat settings central-policy
+  ipv6 cef load-sharing algorithm include-ports source destination
+  class-map match-any BULK
+   match qos-group 5
+  !
+  class-map match-any CALL_SIGNALING
+   match qos-group 7
+  !
+  class-map match-any CRITICAL_DATA
+   match qos-group 1
+  !
+  class-map match-any DEFAULT
+   match qos-group 2
+  !
+  class-map match-any INTERACTIVE
+   match qos-group 4
+  !
+  class-map match-any Queue0
+   match qos-group 0
+  !
+  class-map match-any Queue1
+   match qos-group 1
+  !
+  class-map match-any Queue2
+   match qos-group 2
+  !
+  class-map match-any Queue3
+   match qos-group 3
+  !
+  class-map match-any Queue4
+   match qos-group 4
+  !
+  class-map match-any Queue5
+   match qos-group 5
+  !
+  class-map match-any Queue6
+   match qos-group 6
+  !
+  class-map match-any Queue7
+   match qos-group 7
+  !
+  class-map match-any SCAVENGER
+   match qos-group 3
+  !
+  class-map match-any STREAMING_VIDEO
+   match qos-group 6
+  !
+  policy-map WAN-QOS-MAP
+   class Queue0
+    police rate percent 39
+    !
+    priority level 1
+   !
+   class Queue1
+    bandwidth remaining ratio 25
+    random-detect precedence-based
+   !
+   class class-default
+    bandwidth remaining ratio 15
+    random-detect precedence-based
+   !
+   class Queue3
+    bandwidth remaining ratio 1
+    random-detect precedence-based
+   !
+   class Queue4
+    bandwidth remaining ratio 10
+    random-detect precedence-based
+   !
+   class Queue5
+    bandwidth remaining ratio 5
+    random-detect precedence-based
+   !
+   class Queue6
+    police rate percent 30
+    !
+    priority level 2
+   !
+   class Queue7
+    bandwidth remaining ratio 4
+    random-detect precedence-based
+   !
+  !
+  policy-map shape_GigabitEthernet0/0/0
+   class class-default
+    service-policy WAN-QOS-MAP
+    shape average 500000000
+   !
+  !
+  policy-map shape_GigabitEthernet0/0/1
+   class class-default
+    service-policy WAN-QOS-MAP
+    shape average 500000000
+   !
+  !
+  interface GigabitEthernet0
+   description   OOB Management Interface
+   no shutdown
+   arp timeout 1200
+   vrf forwarding Mgmt-intf
+   ip address 192.168.250.143 255.255.255.0
+   no ip redirects
+   ip mtu    1500
+   load-interval 30
+   mtu           1500
+   negotiation auto
+  exit
+  interface GigabitEthernet0/0/0
+   description   P2P circuit to DC
+   no shutdown
+   arp timeout 1200
+   ip address 192.168.1.143 255.255.255.0
+   no ip redirects
+   ip mtu    1500
+   load-interval 30
+   mtu           1500
+   negotiation auto
+   service-policy output shape_GigabitEthernet0/0/0
+  exit
+  interface GigabitEthernet0/0/1
+   description   Business Internet Circuit
+   no shutdown
+   arp timeout 1200
+   ip address 152.22.241.142 255.255.255.224
+   no ip redirects
+   ip mtu    1500
+   ip nat outside
+   load-interval 30
+   mtu           1500
+   negotiation auto
+   service-policy output shape_GigabitEthernet0/0/1
+  exit
+  interface GigabitEthernet0/0/2
+   description   P2P link to remote gas station
+   no shutdown
+   arp timeout 1200
+   ip address 192.168.3.1 255.255.255.252
+   no ip redirects
+   ip mtu    1500
+   load-interval 30
+   mtu           1500
+   negotiation auto
+  exit
+  interface GigabitEthernet0/0/3
+   description   Parent interface for VPN subinterface
+   no shutdown
+   arp timeout 1200
+   no ip redirects
+   ip mtu    1504
+   load-interval 30
+   mtu           1504
+   negotiation auto
+  exit
+  interface GigabitEthernet0/0/3.240
+   description Subinterface for Service Side LAN
+   no shutdown
+   encapsulation dot1Q 240
+   vrf forwarding 1
+   ip address 10.200.4.1 255.255.255.0
+   ip mtu 1500
+   ip nbar protocol-discovery
+  exit
+  interface GigabitEthernet0/0/3.241
+   description Subinterface for Service Side LAN
+   no shutdown
+   encapsulation dot1Q 241
+   vrf forwarding 2
+   ip address 10.210.4.1 255.255.255.0
+   ip mtu 1500
+   ip nbar protocol-discovery
+  exit
+  interface GigabitEthernet0/0/3.242
+   description Subinterface for Service Side LAN
+   no shutdown
+   encapsulation dot1Q 242
+   vrf forwarding 3
+   ip address 10.220.4.1 255.255.255.0
+   ip pim sparse-mode
+   ip mtu 1500
+   ip nbar protocol-discovery
+  exit
+  interface Loopback1
+   no shutdown
+   arp timeout 1200
+   vrf forwarding 1
+   ip address 192.168.4.1 255.255.255.255
+   ip mtu 1500
+  exit
+  interface Tunnel0
+   no shutdown
+   ip unnumbered GigabitEthernet0/0/0
+   no ip redirects
+   ipv6 unnumbered GigabitEthernet0/0/0
+   no ipv6 redirects
+   tunnel source GigabitEthernet0/0/0
+   tunnel mode sdwan
+  exit
+  interface Tunnel1
+   no shutdown
+   ip unnumbered GigabitEthernet0/0/1
+   no ip redirects
+   ipv6 unnumbered GigabitEthernet0/0/1
+   no ipv6 redirects
+   tunnel source GigabitEthernet0/0/1
+   tunnel mode sdwan
+  exit
+  route-map Redist-connected-bgp permit 1
+   match ip address prefix-list Private1-WAN-link-space
+  !
+  route-map Redist-connected-bgp deny 65535
+  !
+  clock summer-time EDT recurring
+  clock timezone EDT -5 0
+  logging persistent size 104857600 filesize 10485760
+  no logging monitor
+  logging buffered 512000
+  logging console
+  logging trap informational
+  logging host 10.100.0.251 vrf 1
+  logging source-interface Loopback1 vrf 1
+  aaa authentication login default local
+  aaa authorization exec default local
+  aaa server radius dynamic-author
+  !
+  no crypto ikev2 diagnose error
+  no crypto isakmp diagnose error
+  no network-clock revertive
+  router bgp 65004
+   bgp log-neighbor-changes
+   bgp router-id 192.168.4.1
+   neighbor 192.168.1.1 remote-as 65112
+   neighbor 192.168.1.1 description P2P Agg switch at DC
+   address-family ipv4 unicast
+    distance bgp 20 200 20
+    neighbor 192.168.1.1 activate
+    neighbor 192.168.1.1 send-community both
+    redistribute connected route-map Redist-connected-bgp
+    exit-address-family
+   !
+   timers bgp 60 180
+  !
+  snmp-server ifindex persist
+  line aux 0
+   stopbits 1
+  !
+  line con 0
+   speed    9600
+   stopbits 1
+  !
+  line vty 0 4
+   transport input ssh
+  !
+  line vty 5 80
+   transport input ssh
+  !
+  lldp run
+  nat64 translation timeout tcp 3600
+  nat64 translation timeout udp 300
+  policy
+   app-visibility
+   no app-visibility-ipv6
+   flow-visibility
+   no flow-visibility-ipv6
+   implicit-acl-logging
+   log-frequency        1000
+   class-map
+    class BULK queue 5
+    class CALL_SIGNALING queue 7
+    class CRITICAL_DATA queue 1
+    class DEFAULT queue 2
+    class INTERACTIVE queue 4
+    class Queue0 queue 0
+    class Queue1 queue 1
+    class Queue2 queue 2
+    class Queue3 queue 3
+    class Queue4 queue 4
+    class Queue5 queue 5
+    class Queue6 queue 6
+    class Queue7 queue 7
+    class SCAVENGER queue 3
+    class STREAMING_VIDEO queue 6
+   !
+  !
+ !
+!
